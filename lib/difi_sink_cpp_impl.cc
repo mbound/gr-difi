@@ -112,15 +112,28 @@ namespace gr {
       d_full = reference_time_full;
       d_frac = reference_time_frac;
       d_static_bits = 0x18e00000; // header bits 31-20 must be 0x18e (posix), 0x18a (gps), or 0x186 (utc)
-      d_context_static_bits = 0x49e00000;// header bits 31-20 must be 0x49e (posix), 0x49a (gps), or 0x496 (utc)
+      if(context_pack_size == 72)// temporary workaround for non-compliant Kratos SNNB hardware
+      {
+        d_context_static_bits = 0x49000000;
+      }
+      else {
+        d_context_static_bits = 0x49e00000;// header bits 31-20 must be 0x49e (posix), 0x49a (gps), or 0x496 (utc)
+      }
       d_samples_per_packet = samples_per_packet;
       d_time_adj = (double)d_samples_per_packet / samp_rate;
       d_data_len = samples_per_packet * sizeof(S);
       u_int32_t tmp_header_data = d_static_bits ^ d_pkt_n << 16 ^ (d_data_len + difi::DIFI_HEADER_SIZE) / 4;
       u_int32_t tmp_header_context = d_context_static_bits ^ d_context_packet_count << 16 ^ (context_pack_size  / 4);
-      u_int64_t d_class_id = d_oui << 32;
-      //u_int64_t d_context_class_id = d_class_id ^ 1;
-      u_int64_t d_context_class_id = d_class_id ^ 0;
+      u_int64_t d_class_id;
+      u_int64_t d_context_class_id;
+      if(context_pack_size == 72)// temporary workaround for non-compliant Kratos SNNB hardware
+      {
+        d_class_id = d_alt_oui << 32;
+        d_context_class_id = d_class_id ^ 0; // Kratos SNNB requires context class id == data class id
+      } else {
+        d_class_id = d_oui << 32;
+        d_context_class_id = d_class_id ^ 1;
+      }
       d_raw.resize(difi::DIFI_HEADER_SIZE);
       pack_u32(&d_raw[0], tmp_header_data);
       pack_u32(&d_raw[4], d_stream_number);
