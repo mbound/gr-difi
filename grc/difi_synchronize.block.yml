@@ -40,4 +40,29 @@ outputs:
   dtype: ${ type }
   vlen: ${ vlen }
 
+documentation: |-
+    Synchronizes a signal processing stream to the rate of a DIFI source.
+
+    Connect the data stream to the 'in' port and a DIFI Source output to the
+    'synchro' port. GNURadio's scheduler will pace the data stream at the same
+    rate as the DIFI source. Only the data from 'in' is passed to the output;
+    the 'synchro' input is consumed and discarded.
+
+    This block is used in paired mode flowgraphs where a DIFI Source and a
+    DIFI Sink coexist. Without it, the two blocks run at independent rates and
+    the sink can get ahead of the source, causing dropped packets or buffer
+    overflow.
+
+    ===Params===
+
+    share_tags:
+    Controls tag propagation. When True, tags from both inputs (including
+    timing and context tags from the DIFI source on the synchro port) are
+    propagated to the output using TPP_ALL_TO_ALL. When False (default), only
+    tags from the data stream ('in') are propagated. Set to True if downstream
+    blocks need the rx_time or DIFI context tags emitted by the DIFI Source.
+
+    vlen:
+    Vector length of the stream items. Defaults to 1 (scalar samples).
+
 file_format: 1
